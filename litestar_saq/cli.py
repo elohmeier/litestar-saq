@@ -59,8 +59,8 @@ def get_max_shutdown_timeout(workers: "Collection[Worker]") -> float:
     """
     grace_periods: list[float] = []
     for worker in workers:
-        shutdown_grace_period = getattr(worker, "_shutdown_grace_period_s", 0)
-        cancellation_hard_deadline = getattr(worker, "_cancellation_hard_deadline_s", 0)
+        shutdown_grace_period = getattr(worker, "_shutdown_grace_period_s", 0) or 0
+        cancellation_hard_deadline = getattr(worker, "_cancellation_hard_deadline_s", 0) or 0
         grace_period = shutdown_grace_period + cancellation_hard_deadline
         grace_periods.append(grace_period)
     if grace_periods:
