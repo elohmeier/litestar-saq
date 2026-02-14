@@ -4,7 +4,7 @@ from typing import cast
 
 import pytest
 
-from litestar_saq.config import QueueConfig
+from litestar_saq.config import QueueConfig, SAQConfig, TaskQueues
 
 
 def test_postgres_pool_defaults_sets_autocommit(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -50,3 +50,23 @@ def test_broker_type_detection_with_async_redis(monkeypatch: pytest.MonkeyPatch)
     config.broker_instance = DummyAsyncRedis()  # type: ignore[assignment]
 
     assert config.broker_type == "redis"
+
+
+@pytest.mark.asyncio
+async def test_provide_queues_returns_taskqueues_not_async_generator() -> None:
+    class DummyQueue:
+        def __init__(self) -> None:
+            self.connected = False
+
+        async def connect(self) -> None:
+            self.connected = True
+
+    queue = DummyQueue()
+    config = SAQConfig(queue_configs=[])
+    config.queue_instances = {"default": queue}  # type: ignore[assignment]
+
+    result = await config.provide_queues()
+
+    assert isinstance(result, TaskQueues)
+    assert result.queues["default"] is queue
+    assert queue.connected is True

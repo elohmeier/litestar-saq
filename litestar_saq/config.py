@@ -1,7 +1,7 @@
 # ruff: noqa: BLE001
 # pyright: reportMissingImports=false
 # mypy: disable-error-code="import-not-found"
-from collections.abc import AsyncGenerator, Collection, MutableMapping
+from collections.abc import Collection, MutableMapping
 from dataclasses import dataclass, field
 from datetime import timezone, tzinfo
 from importlib import import_module
@@ -170,16 +170,12 @@ class SAQConfig:
             "TaskQueues": TaskQueues,
         }
 
-    async def provide_queues(self) -> "AsyncGenerator[TaskQueues, None]":
-        """Provide the configured job queues.
-
-        Yields:
-            The configured job queues.
-        """
+    async def provide_queues(self) -> TaskQueues:
+        """Provide the configured job queues."""
         queues = self.get_queues()
         for queue in queues.queues.values():
             await queue.connect()
-        yield queues
+        return queues
 
     def filter_delete_queues(self, queues: "list[str]") -> None:
         """Remove all queues except the ones in the given list."""
